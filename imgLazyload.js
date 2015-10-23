@@ -4,7 +4,7 @@ var oLazyload = (function (){
         offset = 100,
         images = [],
         throttleDelay = 50,
-
+        scrollContainer,
 
         elementInViewport = function(el) {
             var rect = el.getBoundingClientRect();
@@ -72,20 +72,24 @@ var oLazyload = (function (){
             };
 
             if(images.length === 0){
-                removeEventListener('scroll', TProcessScroll);
-                removeEventListener('touchmove', TProcessScroll);
+                scrollContainer.removeEventListener('scroll', TProcessScroll);
+                scrollContainer.removeEventListener('touchmove', TProcessScroll);
                 inited = false;
             }
         },
         
         TProcessScroll = throttle(processScroll, throttleDelay),
 
-        init = function(context){
-            context && (images = images.concat(Array.prototype.slice.call(context.querySelectorAll('img[data-src]'), 0)));
+        init = function(options){
+            var opts = options || {};
+            scrollContainer = opts.scrollContainer || document.body;
+            imgContainer = opts.imgContainer || opts.scrollContainer;
+            images = images.concat(Array.prototype.slice.call(imgContainer.querySelectorAll('img[data-src]'), 0));
             processScroll();
+
             if(!inited){
-                addEventListener('scroll', TProcessScroll);
-                addEventListener('touchmove', TProcessScroll);
+                scrollContainer.addEventListener('scroll', TProcessScroll);
+                scrollContainer.addEventListener('touchmove', TProcessScroll);
                 inited = true;
             }
         };
