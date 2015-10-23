@@ -4,7 +4,7 @@ var oLazyload = (function (){
         offset = 100,
         images = [],
         throttleDelay = 50,
-        scrollContainer,
+        scrollContainer = document.body,
 
         elementInViewport = function(el) {
             var rect = el.getBoundingClientRect();
@@ -80,10 +80,8 @@ var oLazyload = (function (){
         
         TProcessScroll = throttle(processScroll, throttleDelay),
 
-        init = function(options){
-            var opts = options || {};
-            scrollContainer = opts.scrollContainer || document.body;
-            imgContainer = opts.imgContainer || opts.scrollContainer;
+        init = function(imgContainer){
+            imgContainer = imgContainer || scrollContainer;
             images = images.concat(Array.prototype.slice.call(imgContainer.querySelectorAll('img[data-src]'), 0));
             processScroll();
 
