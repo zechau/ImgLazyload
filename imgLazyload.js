@@ -66,7 +66,10 @@ var oLazyload = (function (){
                     var img = images[index];
                     if (elementInViewport(img)) {
                         targetIndex = images.indexOf(img);
-                        targetIndex >= 0 && showImg(img) && images.splice(targetIndex, 1);
+                        if(targetIndex >= 0){
+                            showImg(img);
+                            images.splice(targetIndex, 1);
+                        }
                     }
                 })(i);
             };
