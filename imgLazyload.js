@@ -1,15 +1,15 @@
 var oLazyload = (function (){
     var onload,
         inited = false,
-        offset = 100,
+        threshold = 100, //load in advance
         images = [],
         throttleDelay = 50,
         scrollContainer = document.body,
 
         elementInViewport = function(el) {
-            var rect = el.getBoundingClientRect();
-            return (rect.top    >= -(rect.height + offset) &&
-                    rect.top <= (document.documentElement.clientHeight || window.innerHeight) + offset);
+            var offset = el.__offset || (el.__offset = el.getBoundingClientRect());
+            return (offset.top    >= -(offset.height + threshold) &&
+                    offset.top <= (document.documentElement.clientHeight || window.innerHeight) + threshold);
         },
 
         showImg = function(el, fn){
@@ -35,7 +35,7 @@ var oLazyload = (function (){
                         el.removeEventListener('error', onload, false);
                     }
 
-                    fn ? fn(): null;
+                    typeof fn === "function" && fn();
                 }, false);
 
                 el.addEventListener('error', onload, false);
