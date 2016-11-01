@@ -1,22 +1,27 @@
-var oLazyload = (function (){
-    var onload,
-        inited = false,
-        threshold = 100, //load in advance
+    var LazyLoad = (function (){
+        var inited = false,
         images = [],
-        throttleDelay = 50,
-        scrollContainer = document.body,
-
-        elementInViewport = function(el) {
-            var offset = el.__offset || (el.__offset = el.getBoundingClientRect());
-            return (offset.top    >= -(offset.height + threshold) &&
-                    offset.top <= (document.documentElement.clientHeight || window.innerHeight) + threshold);
+        timer,
+        config = {
+            "threshold": 100, //load image in advance
+            "throttle_delay": 200, //delay between each unloaded images check
+            "container": document.body //the container in which images should be lazy-loaded
         },
 
-        showImg = function(el, fn){
+        elementInViewport = function(el) {
+            var offset = el.getBoundingClientRect();
+            var is_visible = offset.top + offset.bottom > 0;
+            var is_on_screen =  (offset.top    >= -(offset.height + config.threshold) &&
+                    offset.top <= (document.documentElement.clientHeight || window.innerHeight) + config.threshold);
+
+            return is_visible && is_on_screen;
+        },
+
+        showImg = function(el){
             var src = el.getAttribute('data-src'),
                 isBg = el.getAttribute('data-bg'),
-                parent;
-
+                parent,
+                onload;
 
             if(src){
                 if(isBg){
@@ -35,7 +40,6 @@ var oLazyload = (function (){
                         el.removeEventListener('error', onload, false);
                     }
 
-                    typeof fn === "function" && fn();
                 }, false);
 
                 el.addEventListener('error', onload, false);
@@ -43,19 +47,6 @@ var oLazyload = (function (){
             }
 
             el.removeAttribute('data-src');
-        },
-
-        throttle = function(fn, minDelay) {
-            var lastCall = 0;
-
-            return function() {
-                var now = +new Date();
-                if (now - lastCall < minDelay) {
-                    return;
-                }
-                lastCall = now;
-                fn.apply(this, arguments);
-            }
         },
 
         processScroll = function(){
@@ -75,27 +66,28 @@ var oLazyload = (function (){
             };
 
             if(images.length === 0){
-                scrollContainer.removeEventListener('scroll', TProcessScroll);
-                scrollContainer.removeEventListener('touchmove', TProcessScroll);
+                clearInterval(timer);
                 inited = false;
             }
         },
-        
-        TProcessScroll = throttle(processScroll, throttleDelay),
 
-        init = function(imgContainer){
-            imgContainer = imgContainer || scrollContainer;
-            images = images.concat(Array.prototype.slice.call(imgContainer.querySelectorAll('img[data-src]'), 0));
+        LazyLoad = function(options){
+            options = options || {};
+            for(var key in options){
+                config[key] = options[key];
+            }
+        };
+
+        LazyLoad.prototype.run = function(container){
+            container = container || config.container;
+            images = images.concat(Array.prototype.slice.call(config.container.querySelectorAll('img[data-src]'), 0));
             processScroll();
 
             if(!inited){
-                scrollContainer.addEventListener('scroll', TProcessScroll);
-                scrollContainer.addEventListener('touchmove', TProcessScroll);
+                setInterval(processScroll, config.throttle_delay);
                 inited = true;
             }
         };
 
-    return {
-        run: init
-    }
-})();
+        return LazyLoad;
+    })();
